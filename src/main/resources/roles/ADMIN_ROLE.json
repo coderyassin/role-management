@@ -1,0 +1,25 @@
+{
+  "role": "ADMIN",
+  "conditions": [
+    {
+      "field": "age",
+      "operator": "greater_than",
+      "value": 25
+    },
+    {
+      "field": "seniority",
+      "operator": "less_than",
+      "value": 5
+    },
+    {
+      "field": "profile",
+      "operator": "contains",
+      "value": "MANAGER"
+    },
+    {
+      "field": "department",
+      "operator": "equals",
+      "value": "IT"
+    }
+  ]
+}
