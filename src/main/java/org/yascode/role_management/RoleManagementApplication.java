@@ -20,10 +20,10 @@ public class RoleManagementApplication implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		User user = User.builder()
-				.id(1L)
+				.id(Long.valueOf(1L))
 				.username("yascode")
-				.age(38)
-				.seniority(4)
+				.age(Integer.valueOf(38))
+				.seniority(Integer.valueOf(4))
 				.profile("MANAGER_C3")
 				.department("IT")
 				.build();
