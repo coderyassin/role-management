@@ -1,0 +1,25 @@
+{
+  "role": "SUPER_ADMIN",
+  "conditions": [
+    {
+      "field": "age",
+      "operator": "greater_than",
+      "value": 30
+    },
+    {
+      "field": "seniority",
+      "operator": "less_than",
+      "value": 10
+    },
+    {
+      "field": "profile",
+      "operator": "contains",
+      "value": "MANAGER_C"
+    },
+    {
+      "field": "department",
+      "operator": "equals",
+      "value": "IT"
+    }
+  ]
+}

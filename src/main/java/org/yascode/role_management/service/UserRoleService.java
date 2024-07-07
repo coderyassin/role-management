@@ -1,9 +1,9 @@
 package org.yascode.role_management.service;
 
-import java.io.IOException;
+import org.yascode.role_management.User;
+
 import java.util.List;
-import java.util.Map;
 
 public interface UserRoleService {
-    List<String> assignRolesToUser(Map<String, Object> userAttributes);
+    List<String> assignRolesToUser(User user);
 }
