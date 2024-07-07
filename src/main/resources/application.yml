@@ -1,3 +1,6 @@
 spring:
   application:
     name: role-management
+application:
+  roles:
+    directoryRules: C:\Users\Yassin\Technical_Expert\Stack_Java\Spring_Security\Search\manage-roles\role-management\src\main\resources\roles

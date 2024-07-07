@@ -7,6 +7,7 @@ import org.yascode.role_management.service.UserRoleService;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @SpringBootApplication
@@ -24,16 +25,12 @@ public class RoleManagementApplication implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		Map<String, Object> userAttributes = new HashMap<>();
-		userAttributes.put("age", 24);
+		userAttributes.put("age", 26);
 		userAttributes.put("seniority", 4);
 		userAttributes.put("profile", "MANAGER_C1");
 		userAttributes.put("department", "IT");
 
-		try {
-			String role = userRoleService.assignRoleToUser(userAttributes);
-			System.out.println("Assigned Role: " + role);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		List<String> rules = userRoleService.assignRolesToUser(userAttributes);
+		rules.forEach(System.out::println);
 	}
 }
