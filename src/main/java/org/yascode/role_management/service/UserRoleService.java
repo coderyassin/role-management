@@ -1,6 +1,6 @@
 package org.yascode.role_management.service;
 
-import org.yascode.role_management.User;
+import org.yascode.role_management.entity.User;
 
 import java.util.List;
 

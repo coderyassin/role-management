@@ -1,4 +1,4 @@
-package org.yascode.role_management;
+package org.yascode.role_management.entity;
 
 import lombok.*;
 

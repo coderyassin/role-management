@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
-import org.yascode.role_management.User;
+import org.yascode.role_management.entity.User;
 import org.yascode.role_management.role.RoleEvaluator;
 import org.yascode.role_management.role.RoleRule;
 import org.yascode.role_management.role.RoleRuleLoader;
