@@ -3,7 +3,6 @@ package org.yascode.role_management;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.yascode.role_management.entity.User;
 import org.yascode.role_management.service.UserRoleService;
 
 @SpringBootApplication
@@ -20,7 +19,7 @@ public class RoleManagementApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		User user = User.builder()
+		/*User user = User.builder()
 				.id(1L)
 				.username("yascode")
 				.age(38)
@@ -30,6 +29,6 @@ public class RoleManagementApplication implements CommandLineRunner {
 				.build();
 
 		userRoleService.assignRolesToUser(user)
-					   .forEach(System.out::println);
+					   .forEach(System.out::println);*/
 	}
 }
