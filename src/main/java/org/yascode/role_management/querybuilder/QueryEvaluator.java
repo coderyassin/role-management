@@ -45,7 +45,13 @@ public class QueryEvaluator {
             throw new IllegalArgumentException("Unknown field: " + field);
         }
 
-        if (fieldValue instanceof String) {
+        if(operator.equals("between")) {
+            if (fieldValue instanceof Integer) {
+                return evaluateCondition((Integer) fieldValue, (List<Integer>) value, operator);
+            } else if(fieldValue instanceof Double) {
+                return evaluateCondition((Integer) fieldValue, (List<Double>) value, operator);
+            }
+        } else if (fieldValue instanceof String) {
             return evaluateCondition((String) fieldValue, (String) value, operator);
         } else if (fieldValue instanceof Integer) {
             return evaluateCondition((Integer) fieldValue, (Integer) value, operator);
@@ -53,9 +59,12 @@ public class QueryEvaluator {
             return evaluateCondition((Double) fieldValue, (Double) value, operator);
         } else if (fieldValue instanceof Boolean) {
             return evaluateCondition((Boolean) fieldValue, (Boolean) value, operator);
+        } else if(true) {
+            return true;
         } else {
             throw new IllegalArgumentException("Unsupported field type: " + fieldValue.getClass().getName());
         }
+        throw new IllegalArgumentException("Unsupported field type: " + fieldValue.getClass().getName());
     }
 
     private boolean evaluateCondition(double fieldValue, double ruleValue, String operator) {
@@ -76,6 +85,24 @@ public class QueryEvaluator {
                 return Objects.isNull(fieldValue);
             case "is_not_null":
                 return Objects.nonNull(fieldValue);
+            default:
+                throw new IllegalArgumentException("Unknown operator: " + operator);
+        }
+    }
+
+    private boolean evaluateCondition(double fieldValue, List<Double> ruleValue, String operator) {
+        switch (operator) {
+            case "between":
+                return fieldValue >= ruleValue.get(0) && fieldValue <= ruleValue.get(1);
+            default:
+                throw new IllegalArgumentException("Unknown operator: " + operator);
+        }
+    }
+
+    private boolean evaluateCondition(int fieldValue, List<Integer> ruleValue, String operator) {
+        switch (operator) {
+            case "between":
+                return fieldValue >= ruleValue.get(0) && fieldValue <= ruleValue.get(1);
             default:
                 throw new IllegalArgumentException("Unknown operator: " + operator);
         }

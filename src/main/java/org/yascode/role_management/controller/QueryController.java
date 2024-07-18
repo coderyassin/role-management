@@ -13,7 +13,14 @@ import java.util.Map;
 @RequestMapping(value = "/queries")
 public class QueryController implements QueryApi {
     private final QueryEvaluator queryEvaluator;
-    private final Map<String, Object> userMap = Map.of();
+    private final Map<String, Object> userMap = Map.of(
+            "country", "Maroc",
+            "direction", "DIR DES OPERATIONS",
+            "job", "IN9009",
+            "prod", 1,
+            "profile", "COORDINATOR",
+            "uo", 200
+    );
 
     public QueryController(QueryEvaluator queryEvaluator) {
         this.queryEvaluator = queryEvaluator;
