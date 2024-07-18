@@ -45,11 +45,13 @@ public class QueryEvaluator {
             throw new IllegalArgumentException("Unknown field: " + field);
         }
 
-        if(operator.equals("between")) {
+        if(value instanceof List) {
             if (fieldValue instanceof Integer) {
                 return evaluateCondition((Integer) fieldValue, (List<Integer>) value, operator);
             } else if(fieldValue instanceof Double) {
                 return evaluateCondition((Integer) fieldValue, (List<Double>) value, operator);
+            } else if(fieldValue instanceof String) {
+                return evaluateCondition((String) fieldValue, (List<String>) value, operator);
             }
         } else if (fieldValue instanceof String) {
             return evaluateCondition((String) fieldValue, (String) value, operator);
@@ -90,24 +92,6 @@ public class QueryEvaluator {
         }
     }
 
-    private boolean evaluateCondition(double fieldValue, List<Double> ruleValue, String operator) {
-        switch (operator) {
-            case "between":
-                return fieldValue >= ruleValue.get(0) && fieldValue <= ruleValue.get(1);
-            default:
-                throw new IllegalArgumentException("Unknown operator: " + operator);
-        }
-    }
-
-    private boolean evaluateCondition(int fieldValue, List<Integer> ruleValue, String operator) {
-        switch (operator) {
-            case "between":
-                return fieldValue >= ruleValue.get(0) && fieldValue <= ruleValue.get(1);
-            default:
-                throw new IllegalArgumentException("Unknown operator: " + operator);
-        }
-    }
-
     private boolean evaluateCondition(int fieldValue, int ruleValue, String operator) {
         switch (operator) {
             case "equal":
@@ -137,10 +121,22 @@ public class QueryEvaluator {
                 return fieldValue.equals(ruleValue);
             case "not_equal":
                 return !fieldValue.equals(ruleValue);
-            case "in":
+            case "contains":
                 return fieldValue.contains(ruleValue);
-            case "not_in":
+            case "not_contains":
                 return !fieldValue.contains(ruleValue);
+            case "begins_with":
+                return fieldValue.startsWith(ruleValue);
+            case "not_begins_with":
+                return !fieldValue.startsWith(ruleValue);
+            case "ends_with":
+                return fieldValue.endsWith(ruleValue);
+            case "not_ends_with":
+                return !fieldValue.endsWith(ruleValue);
+            case "is_empty":
+                return ruleValue.isEmpty();
+            case "is_not_empty":
+                return !ruleValue.isEmpty();
             case "is_null":
                 return Objects.isNull(fieldValue);
             case "is_not_null":
@@ -150,12 +146,49 @@ public class QueryEvaluator {
         }
     }
 
+    private boolean evaluateCondition(double fieldValue, List<Double> ruleValue, String operator) {
+        switch (operator) {
+            case "between":
+                return fieldValue >= ruleValue.get(0) && fieldValue <= ruleValue.get(1);
+            case "in":
+                return ruleValue.stream().anyMatch(value -> value.equals(fieldValue));
+            case "not_in":
+                return ruleValue.stream().noneMatch(value -> value.equals(fieldValue));
+            default:
+                throw new IllegalArgumentException("Unknown operator: " + operator);
+        }
+    }
+
+    private boolean evaluateCondition(int fieldValue, List<Integer> ruleValue, String operator) {
+        switch (operator) {
+            case "between":
+                return fieldValue >= ruleValue.get(0) && fieldValue <= ruleValue.get(1);
+            case "in":
+                return ruleValue.stream().anyMatch(value -> value.equals(fieldValue));
+            case "not_in":
+                return ruleValue.stream().noneMatch(value -> value.equals(fieldValue));
+            default:
+                throw new IllegalArgumentException("Unknown operator: " + operator);
+        }
+    }
+
+    private boolean evaluateCondition(String fieldValue, List<String> ruleValue, String operator) {
+        switch (operator) {
+            case "in":
+                return ruleValue.stream().anyMatch(value -> value.equals(fieldValue));
+            case "not_in":
+                return ruleValue.stream().noneMatch(value -> value.equals(fieldValue));
+            default:
+                throw new IllegalArgumentException("Unknown operator: " + operator);
+        }
+    }
+
     private boolean evaluateCondition(boolean fieldValue, boolean ruleValue, String operator) {
         switch (operator) {
             case "equal":
-                return fieldValue == ruleValue;
+                return Objects.equals(fieldValue, ruleValue);
             case "not_equal":
-                return fieldValue != ruleValue;
+                return !Objects.equals(fieldValue, ruleValue);
             default:
                 throw new IllegalArgumentException("Unknown operator: " + operator);
         }

@@ -19,7 +19,7 @@ public class QueryController implements QueryApi {
             "job", "IN9009",
             "prod", 1,
             "profile", "COORDINATOR",
-            "uo", 200
+            "registration_number", "073176"
     );
 
     public QueryController(QueryEvaluator queryEvaluator) {
