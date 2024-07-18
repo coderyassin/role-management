@@ -27,7 +27,7 @@ public class QueryController implements QueryApi {
     }
 
     @Override
-    public ResponseEntity<String> evaluateQuery(Query query) {
-        return ResponseEntity.ok(queryEvaluator.evaluate(query, userMap) ? "true" : "false");
+    public ResponseEntity<Object> evaluateQuery(Query query) {
+        return ResponseEntity.ok(queryEvaluator.evaluate(query, userMap));
     }
 }

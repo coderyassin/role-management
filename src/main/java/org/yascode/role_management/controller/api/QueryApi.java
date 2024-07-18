@@ -7,5 +7,5 @@ import org.yascode.role_management.querybuilder.Query;
 
 public interface QueryApi {
     @PostMapping(value = "/evaluateQuery")
-    ResponseEntity<String> evaluateQuery(@RequestBody Query query);
+    ResponseEntity<Object> evaluateQuery(@RequestBody Query query);
 }
