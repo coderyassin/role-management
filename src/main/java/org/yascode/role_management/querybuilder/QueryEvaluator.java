@@ -1,15 +1,18 @@
 package org.yascode.role_management.querybuilder;
 
 import org.springframework.stereotype.Component;
+import org.yascode.role_management.model.Evaluation;
 
 import java.util.*;
 
 @Component
 public class QueryEvaluator {
-    public Object evaluate(Query query, Map<String, Object> userMap) {
+    public Evaluation evaluate(Query query, Map<String, Object> userMap) {
         List<String> errors = new ArrayList<>();
-        boolean result = evaluateRules(query.getRules(), query.getCondition(), userMap, errors);
-        return errors.isEmpty() ? result : errors;
+        return Evaluation.builder()
+                .valid(evaluateRules(query.getRules(), query.getCondition(), userMap, errors))
+                .errors(errors)
+                .build();
     }
 
     private boolean evaluateRules(List<Rule> rules, String condition, Map<String, Object> userMap, List<String> errors) {

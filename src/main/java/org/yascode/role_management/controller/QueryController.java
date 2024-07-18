@@ -5,14 +5,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.yascode.role_management.controller.api.QueryApi;
 import org.yascode.role_management.querybuilder.Query;
-import org.yascode.role_management.querybuilder.QueryEvaluator;
+import org.yascode.role_management.service.EvaluatorService;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/queries")
 public class QueryController implements QueryApi {
-    private final QueryEvaluator queryEvaluator;
+    private final EvaluatorService evaluatorService;
     private final Map<String, Object> userMap = Map.of(
             "country", "Maroc",
             "direction", "DIR DES OPERATIONS",
@@ -22,12 +22,12 @@ public class QueryController implements QueryApi {
             "registration_number", "073176"
     );
 
-    public QueryController(QueryEvaluator queryEvaluator) {
-        this.queryEvaluator = queryEvaluator;
+    public QueryController(EvaluatorService evaluatorService) {
+        this.evaluatorService = evaluatorService;
     }
 
     @Override
     public ResponseEntity<Object> evaluateQuery(Query query) {
-        return ResponseEntity.ok(queryEvaluator.evaluate(query, userMap));
+        return ResponseEntity.ok(evaluatorService.evaluate(query, userMap));
     }
 }
