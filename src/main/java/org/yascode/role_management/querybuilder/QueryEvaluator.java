@@ -8,7 +8,8 @@ import java.util.*;
 public class QueryEvaluator {
     public Object evaluate(Query query, Map<String, Object> userMap) {
         List<String> errors = new ArrayList<>();
-        return evaluateRules(query.getRules(), query.getCondition(), userMap, errors) ? true : errors;
+        boolean result = evaluateRules(query.getRules(), query.getCondition(), userMap, errors);
+        return errors.isEmpty() ? result : errors;
     }
 
     private boolean evaluateRules(List<Rule> rules, String condition, Map<String, Object> userMap, List<String> errors) {
