@@ -3,22 +3,17 @@ package org.yascode.role_management.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-
 @Entity
-@Table(name = "users_data")
+@Table(name = "attributes")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class Attribute {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String username;
-
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
-    private List<UserValue> values;
+    private String field;
+    private String type;
 }

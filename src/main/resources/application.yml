@@ -1,6 +1,22 @@
 spring:
   application:
     name: role-management
+  datasource:
+    url: jdbc:mysql://localhost/role-management?autoReconnect=true
+    username: config
+    password: config
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    properties:
+      hibernate:
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
 application:
   roles:
     directoryRules: C:\Users\Yassin\Technical_Expert\Stack_Java\Spring_Security\Search\manage-roles\role-management\src\main\resources\roles
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
