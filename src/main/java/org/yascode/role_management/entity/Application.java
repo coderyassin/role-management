@@ -6,19 +6,19 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Builder
-public class User {
+public class Application {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String name;
 
-    private String username;
-
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
-    private List<UserValue> values;
+    @OneToMany(mappedBy = "application")
+    private List<Filter> filters;
 }

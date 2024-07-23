@@ -13,5 +13,4 @@ public class Query {
     private String condition;
     private List<Rule> rules;
     private boolean valid;
-
 }
