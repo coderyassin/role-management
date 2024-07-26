@@ -2,18 +2,23 @@ package org.yascode.role_management.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.yascode.role_management.util.OperatorEnum;
 
 @Entity
-@Table(name = "attributes")
+@Table(name = "operators")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Builder
-public class Attribute {
+public class Operator {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "operator_id")
     private Long id;
-    private String field;
-    private String type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(unique = true)
+    private OperatorEnum name;
 }

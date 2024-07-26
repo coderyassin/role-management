@@ -2,6 +2,7 @@ package org.yascode.role_management.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.yascode.role_management.util.UserFieldType;
 
 @Entity
 @Table(name = "users_value")
@@ -15,9 +16,12 @@ public class UserValue {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "attribute_id", nullable = false)
-    private Attribute attribute;
+    @Column(name = "field")
+    private String field;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type")
+    private UserFieldType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

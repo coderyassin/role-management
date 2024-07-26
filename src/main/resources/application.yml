@@ -2,15 +2,15 @@ spring:
   application:
     name: role-management
   datasource:
-    url: jdbc:postgresql://localhost:5432/role-management
-    username: postgres
-    password: YassMel97
-    #url: jdbc:mysql://localhost/role-management?autoReconnect=true
-    #username: config
-    #password: config
+    #url: jdbc:postgresql://localhost:5432/role-management
+    #username: postgres
+    #password: YassMel97
+    url: jdbc:mysql://localhost/role-management?autoReconnect=true
+    username: config
+    password: config
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    #database-platform: org.hibernate.dialect.MySQLDialect
+    #database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     properties:
       hibernate:
         format_sql: true

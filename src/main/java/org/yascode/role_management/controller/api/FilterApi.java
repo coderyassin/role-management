@@ -11,6 +11,9 @@ public interface FilterApi {
     @PostMapping(value = "/saveFilter")
     ResponseEntity<?> saveFilter(@RequestBody SaveFilterRequest saveFilterRequest);
 
-    @GetMapping(value = "/{id}")
-    ResponseEntity<?> retrieveFilter(@PathVariable("id") Long id);
+    @GetMapping(value = "/{authority}")
+    ResponseEntity<?> retrieveFilterByAuthority(@PathVariable("authority") String authority);
+
+    @GetMapping(value = "/all")
+    ResponseEntity<?> allFilters();
 }

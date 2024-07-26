@@ -1,31 +1,34 @@
 package org.yascode.role_management.querybuilder;
 
 import org.springframework.stereotype.Component;
+import org.yascode.role_management.dto.ValueUserDto;
 import org.yascode.role_management.model.Evaluation;
+import org.yascode.role_management.util.UserFieldType;
 
 import java.util.*;
 
-import static org.yascode.role_management.util.Operator.*;
+import static org.yascode.role_management.util.OperatorUtil.*;
+import static org.yascode.role_management.util.UserFieldType.INTEGER;
 
 @Component
 public class QueryEvaluator {
-    public Evaluation evaluate(Query query, Map<String, Object> userMap) {
+    public Evaluation evaluate(Query query, List<ValueUserDto> valuesUser) {
         List<String> errors = new ArrayList<>();
         return Evaluation.builder()
-                .valid(evaluateRules(query.getRules(), query.getCondition(), userMap, errors))
+                .valid(evaluateRules(query.getRules(), query.getCondition(), valuesUser, errors))
                 .errors(errors)
                 .build();
     }
 
-    private boolean evaluateRules(List<Rule> rules, String condition, Map<String, Object> userMap, List<String> errors) {
+    private boolean evaluateRules(List<Rule> rules, String condition, List<ValueUserDto> valuesUser, List<String> errors) {
         boolean result = "AND".equalsIgnoreCase(condition);
         for (Rule rule : rules) {
             boolean ruleResult;
 
             if (Objects.nonNull(rule.getRules()) && !rule.getRules().isEmpty()) {
-                ruleResult = evaluateRules(rule.getRules(), rule.getCondition(), userMap, errors);
+                ruleResult = evaluateRules(rule.getRules(), rule.getCondition(), valuesUser, errors);
             } else {
-                ruleResult = evaluateRule(rule, userMap, errors);
+                ruleResult = evaluateRule(rule, valuesUser, errors);
             }
 
             if ("AND".equalsIgnoreCase(condition)) {
@@ -40,13 +43,16 @@ public class QueryEvaluator {
         return result;
     }
 
-    private boolean evaluateRule(Rule rule, Map<String, Object> userMap, List<String> errors) {
+    private boolean evaluateRule(Rule rule, List<ValueUserDto> valuesUser, List<String> errors) {
         Object value = rule.getValue();
         String field = rule.getField();
         String operator = rule.getOperator();
-        Object fieldValue = userMap.get(field);
+        ValueUserDto valueUserDto = valuesUser.stream()
+                .filter(v -> v.getField().equals(field)).findFirst().orElse(null);
 
-        if (fieldValue == null) {
+        Object fieldValue = Objects.nonNull(valueUserDto) ? valueUserDto.getValue() : null;
+
+        if (Objects.isNull(fieldValue)) {
             errors.add("Unknown field: " + field);
             return false;
         }
@@ -257,6 +263,23 @@ public class QueryEvaluator {
     }
 
     private boolean evaluateCondition(String fieldValue, List<String> ruleValue, String operator, List<String> errors, String field) {
+        boolean result;
+        switch (operator) {
+            case IN:
+                result = ruleValue.stream().anyMatch(value -> value.equals(fieldValue));
+                if (!result) errors.add(field + " is not in the list of values");
+                return result;
+            case NOT_IN:
+                result = ruleValue.stream().noneMatch(value -> value.equals(fieldValue));
+                if (!result) errors.add(field + " is in the list of values");
+                return result;
+            default:
+                errors.add("Unknown operator: " + operator + " for field: " + field);
+                return false;
+        }
+    }
+
+    private boolean evaluateCondition(String fieldValue, UserFieldType type, List<String> ruleValue, String operator, List<String> errors, String field) {
         boolean result;
         switch (operator) {
             case IN:

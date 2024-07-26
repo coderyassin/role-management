@@ -22,7 +22,12 @@ public class FilterController implements FilterApi {
     }
 
     @Override
-    public ResponseEntity<?> retrieveFilter(Long id) {
-        return ResponseEntity.ok(filterService.getFilter(id));
+    public ResponseEntity<?> retrieveFilterByAuthority(String authority) {
+        return ResponseEntity.ok(filterService.getFilterByAuthority(authority));
+    }
+
+    @Override
+    public ResponseEntity<?> allFilters() {
+        return ResponseEntity.ok(filterService.globalFilters());
     }
 }

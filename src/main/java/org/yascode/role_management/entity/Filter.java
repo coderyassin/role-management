@@ -17,13 +17,10 @@ public class Filter {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @ManyToOne
     @JoinColumn(name = "application_id")
     private Application application;
-
     private String authority;
-
     @Convert(converter = QueryAttributeConverter.class)
     @Column(columnDefinition = "TEXT")
     private Query query;

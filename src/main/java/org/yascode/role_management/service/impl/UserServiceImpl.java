@@ -1,6 +1,7 @@
 package org.yascode.role_management.service.impl;
 
 import org.springframework.stereotype.Service;
+import org.yascode.role_management.dto.ValueUserDto;
 import org.yascode.role_management.repository.UserRepository;
 import org.yascode.role_management.repository.UserValueRepository;
 import org.yascode.role_management.service.EvaluatorService;
@@ -35,12 +36,17 @@ public class UserServiceImpl implements UserService {
         userRepository.findByUsername(username)
                 .ifPresent(user -> {
                     Map<String, Object> valueMap = new HashMap<>();
+                    List<ValueUserDto> valuesUser = new ArrayList<>();  //valueMap.put(fieldValue.getField(), fieldValue.getValue())
                     userValueRepository.findUserValueByUser(user)
-                            .forEach(value -> valueMap.put(value.getAttribute().getField(), value.getValue()));
+                            .forEach(fieldValue -> valuesUser.add(ValueUserDto.builder()
+                                    .field(fieldValue.getField())
+                                    .type(fieldValue.getType())
+                                    .value(fieldValue.getValue())
+                                    .build() ));
 
                     filterService.allFilters()
                             .forEach(filter -> {
-                                if (evaluatorService.evaluate(filter.getQuery(), valueMap).isValid()) {
+                                if (evaluatorService.evaluate(filter.getQuery(), valuesUser).isValid()) {
                                     authorities.add(filter.getAuthority());
                                 }
                             });

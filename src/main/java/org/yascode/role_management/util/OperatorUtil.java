@@ -1,6 +1,6 @@
 package org.yascode.role_management.util;
 
-public class Operator {
+public class OperatorUtil {
     public static final String EQUAL = "equal";
     public static final String NOT_EQUAL = "not_equal";
     public static final String LESS = "less";
