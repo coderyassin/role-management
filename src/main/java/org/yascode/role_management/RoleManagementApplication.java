@@ -94,9 +94,9 @@ public class RoleManagementApplication implements CommandLineRunner {
 
 		userRepository.save(user);*/
 
-		User user = userRepository.findByUsername("073176").get();
+		//User user = userRepository.findByUsername("073176").get();
 
-		UserValue userValue1 = UserValue.builder()
+		/*UserValue userValue1 = UserValue.builder()
 				.field("direction")
 				.value("SOFTWARE FACTORY")
 				.type(UserFieldType.STRING)
@@ -143,7 +143,7 @@ public class RoleManagementApplication implements CommandLineRunner {
 				.value("073176")
 				.type(UserFieldType.STRING)
 				.user(user)
-				.build();
+				.build();*/
 
 		//userValueRepository.saveAll(List.of(userValue7));
 	}

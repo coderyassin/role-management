@@ -5,10 +5,11 @@ import org.yascode.role_management.dto.ValueUserDto;
 import org.yascode.role_management.model.Evaluation;
 import org.yascode.role_management.util.UserFieldType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import static org.yascode.role_management.util.OperatorUtil.*;
-import static org.yascode.role_management.util.UserFieldType.INTEGER;
 
 @Component
 public class QueryEvaluator {
@@ -44,272 +45,129 @@ public class QueryEvaluator {
     }
 
     private boolean evaluateRule(Rule rule, List<ValueUserDto> valuesUser, List<String> errors) {
-        Object value = rule.getValue();
         String field = rule.getField();
         String operator = rule.getOperator();
         ValueUserDto valueUserDto = valuesUser.stream()
                 .filter(v -> v.getField().equals(field)).findFirst().orElse(null);
 
-        Object fieldValue = Objects.nonNull(valueUserDto) ? valueUserDto.getValue() : null;
-
-        if (Objects.isNull(fieldValue)) {
+        if (valueUserDto == null) {
             errors.add("Unknown field: " + field);
             return false;
         }
 
-        if (value instanceof List) {
-            if (fieldValue instanceof Integer) {
-                return evaluateCondition((Integer) fieldValue, (List<Integer>) value, operator, errors, field);
-            } else if (fieldValue instanceof Double) {
-                return evaluateCondition((Double) fieldValue, (List<Double>) value, operator, errors, field);
-            } else if (fieldValue instanceof String) {
-                return evaluateCondition(String.valueOf(fieldValue), (List<String>) value, operator, errors, field);
+        String fieldValue = String.valueOf(valueUserDto.getValue());
+        UserFieldType type = valueUserDto.getType();
+
+        return evaluateCondition(fieldValue, rule.getValue(), operator, type, errors, field);
+    }
+
+    private boolean evaluateCondition(String fieldValue, Object ruleValue, String operator, UserFieldType type, List<String> errors, String field) {
+        try {
+            switch (type) {
+                case STRING:
+                    return evaluateStringCondition(fieldValue, ruleValue, operator, errors, field);
+                case INTEGER:
+                    int fieldValueInt = Integer.parseInt(fieldValue);
+                    return evaluateNumericCondition(fieldValueInt, ruleValue, operator, errors, field);
+                case DOUBLE:
+                    double fieldValueDouble = Double.parseDouble(fieldValue);
+                    return evaluateNumericCondition(fieldValueDouble, ruleValue, operator, errors, field);
+                case BOOLEAN:
+                    boolean fieldValueBool = Boolean.parseBoolean(fieldValue);
+                    return evaluateBooleanCondition(fieldValueBool, ruleValue, operator, errors, field);
+                default:
+                    errors.add("Unsupported field type: " + type + " for field: " + field);
+                    return false;
             }
-        } else if (fieldValue instanceof String) {
-            return evaluateCondition(String.valueOf(fieldValue), String.valueOf(value), operator, errors, field);
-        } else if (fieldValue instanceof Integer) {
-            return evaluateCondition((Integer) fieldValue, (Integer) value, operator, errors, field);
-        } else if (fieldValue instanceof Double) {
-            return evaluateCondition((Double) fieldValue, (Double) value, operator, errors, field);
-        } else if (fieldValue instanceof Boolean) {
-            return evaluateCondition((Boolean) fieldValue, (Boolean) value, operator, errors, field);
-        } else {
-            errors.add("Unsupported field type: " + fieldValue.getClass().getName() + " for field: " + field);
+        } catch (NumberFormatException e) {
+            errors.add("Invalid number format for field: " + field);
             return false;
         }
-        errors.add("Unsupported field type: " + fieldValue.getClass().getName() + " for field: " + field);
+    }
+
+    private boolean evaluateStringCondition(String fieldValue, Object ruleValue, String operator, List<String> errors, String field) {
+        String ruleValueStr = String.valueOf(ruleValue);
+        switch (operator) {
+            case EQUAL:
+                return fieldValue.equals(ruleValueStr);
+            case NOT_EQUAL:
+                return !fieldValue.equals(ruleValueStr);
+            case CONTAINS:
+                return fieldValue.contains(ruleValueStr);
+            case NOT_CONTAINS:
+                return !fieldValue.contains(ruleValueStr);
+            case BEGINS_WITH:
+                return fieldValue.startsWith(ruleValueStr);
+            case NOT_BEGINS_WITH:
+                return !fieldValue.startsWith(ruleValueStr);
+            case ENDS_WITH:
+                return fieldValue.endsWith(ruleValueStr);
+            case NOT_ENDS_WITH:
+                return !fieldValue.endsWith(ruleValueStr);
+            case IS_EMPTY:
+                return fieldValue.isEmpty();
+            case IS_NOT_EMPTY:
+                return !fieldValue.isEmpty();
+            case IN:
+            case NOT_IN:
+                if (ruleValue instanceof List) {
+                    List<?> ruleValueList = (List<?>) ruleValue;
+                    boolean contains = ruleValueList.contains(fieldValue);
+                    return operator.equals(IN) ? contains : !contains;
+                }
+            default:
+                errors.add("Unsupported operator for string: " + operator + " for field: " + field);
+                return false;
+        }
+    }
+
+    private <T extends Comparable<T>> boolean evaluateNumericCondition(T fieldValue, Object ruleValue, String operator, List<String> errors, String field) {
+        if (ruleValue instanceof List) {
+            List<?> ruleValueList = (List<?>) ruleValue;
+            switch (operator) {
+                case BETWEEN:
+                    if (ruleValueList.size() == 2) {
+                        T min = (T) ruleValueList.get(0);
+                        T max = (T) ruleValueList.get(1);
+                        return fieldValue.compareTo(min) >= 0 && fieldValue.compareTo(max) <= 0;
+                    }
+                case IN, NOT_IN:
+                    boolean contains = ruleValueList.contains(fieldValue);
+                    return operator.equals(IN) ? contains : !contains;
+            }
+        } else {
+            T ruleValueT = (T) ruleValue;
+            switch (operator) {
+                case EQUAL:
+                    return fieldValue.compareTo(ruleValueT) == 0;
+                case NOT_EQUAL:
+                    return fieldValue.compareTo(ruleValueT) != 0;
+                case LESS:
+                    return fieldValue.compareTo(ruleValueT) < 0;
+                case LESS_OR_EQUAL:
+                    return fieldValue.compareTo(ruleValueT) <= 0;
+                case GREATER:
+                    return fieldValue.compareTo(ruleValueT) > 0;
+                case GREATER_OR_EQUAL:
+                    return fieldValue.compareTo(ruleValueT) >= 0;
+            }
+        }
+        errors.add("Unsupported operator for numeric: " + operator + " for field: " + field);
         return false;
     }
 
-    private boolean evaluateCondition(double fieldValue, double ruleValue, String operator, List<String> errors, String field) {
-        boolean result;
-        switch (operator) {
-            case EQUAL:
-                result = fieldValue == ruleValue;
-                if (!result) errors.add(field + " does not equal " + ruleValue);
-                return result;
-            case NOT_EQUAL:
-                result = fieldValue != ruleValue;
-                if (!result) errors.add(field + " equals " + ruleValue);
-                return result;
-            case LESS:
-                result = fieldValue < ruleValue;
-                if (!result) errors.add(field + " is not less than " + ruleValue);
-                return result;
-            case LESS_OR_EQUAL:
-                result = fieldValue <= ruleValue;
-                if (!result) errors.add(field + " is not less than or equal to " + ruleValue);
-                return result;
-            case GREATER:
-                result = fieldValue > ruleValue;
-                if (!result) errors.add(field + " is not greater than " + ruleValue);
-                return result;
-            case GREATER_OR_EQUAL:
-                result = fieldValue >= ruleValue;
-                if (!result) errors.add(field + " is not greater than or equal to " + ruleValue);
-                return result;
-            case IS_NULL:
-                result = Objects.isNull(fieldValue);
-                if (!result) errors.add(field + " is not null");
-                return result;
-            case IS_NOT_NULL:
-                result = Objects.nonNull(fieldValue);
-                if (!result) errors.add(field + " is null");
-                return result;
-            default:
-                errors.add("Unknown operator: " + operator + " for field: " + field);
-                return false;
+    private boolean evaluateBooleanCondition(boolean fieldValue, Object ruleValue, String operator, List<String> errors, String field) {
+        if (ruleValue instanceof Boolean ruleValueBool) {
+            return switch (operator) {
+                case EQUAL -> fieldValue == ruleValueBool;
+                case NOT_EQUAL -> fieldValue != ruleValueBool;
+                default -> {
+                    errors.add("Unsupported operator for boolean: " + operator + " for field: " + field);
+                    yield false;
+                }
+            };
         }
-    }
-
-    private boolean evaluateCondition(int fieldValue, int ruleValue, String operator, List<String> errors, String field) {
-        boolean result;
-        switch (operator) {
-            case EQUAL:
-                result = fieldValue == ruleValue;
-                if (!result) errors.add(field + " does not equal " + ruleValue);
-                return result;
-            case NOT_EQUAL:
-                result = fieldValue != ruleValue;
-                if (!result) errors.add(field + " equals " + ruleValue);
-                return result;
-            case LESS:
-                result = fieldValue < ruleValue;
-                if (!result) errors.add(field + " is not less than " + ruleValue);
-                return result;
-            case LESS_OR_EQUAL:
-                result = fieldValue <= ruleValue;
-                if (!result) errors.add(field + " is not less than or equal to " + ruleValue);
-                return result;
-            case GREATER:
-                result = fieldValue > ruleValue;
-                if (!result) errors.add(field + " is not greater than " + ruleValue);
-                return result;
-            case GREATER_OR_EQUAL:
-                result = fieldValue >= ruleValue;
-                if (!result) errors.add(field + " is not greater than or equal to " + ruleValue);
-                return result;
-            case IS_NULL:
-                result = Objects.isNull(fieldValue);
-                if (!result) errors.add(field + " is not null");
-                return result;
-            case IS_NOT_NULL:
-                result = Objects.nonNull(fieldValue);
-                if (!result) errors.add(field + " is null");
-                return result;
-            default:
-                errors.add("Unknown operator: " + operator + " for field: " + field);
-                return false;
-        }
-    }
-
-    private boolean evaluateCondition(String fieldValue, String ruleValue, String operator, List<String> errors, String field) {
-        boolean result;
-        switch (operator) {
-            case EQUAL:
-                result = fieldValue.equals(ruleValue);
-                if (!result) errors.add(field + " does not equal " + ruleValue);
-                return result;
-            case NOT_EQUAL:
-                result = !fieldValue.equals(ruleValue);
-                if (!result) errors.add(field + " equals " + ruleValue);
-                return result;
-            case CONTAINS:
-                result = fieldValue.contains(ruleValue);
-                if (!result) errors.add(field + " does not contain " + ruleValue);
-                return result;
-            case NOT_CONTAINS:
-                result = !fieldValue.contains(ruleValue);
-                if (!result) errors.add(field + " contains " + ruleValue);
-                return result;
-            case BEGINS_WITH:
-                result = fieldValue.startsWith(ruleValue);
-                if (!result) errors.add(field + " does not begin with " + ruleValue);
-                return result;
-            case NOT_BEGINS_WITH:
-                result = !fieldValue.startsWith(ruleValue);
-                if (!result) errors.add(field + " begins with " + ruleValue);
-                return result;
-            case ENDS_WITH:
-                result = fieldValue.endsWith(ruleValue);
-                if (!result) errors.add(field + " does not end with " + ruleValue);
-                return result;
-            case NOT_ENDS_WITH:
-                result = !fieldValue.endsWith(ruleValue);
-                if (!result) errors.add(field + " ends with " + ruleValue);
-                return result;
-            case IS_EMPTY:
-                result = ruleValue.isEmpty();
-                if (!result) errors.add(field + " is not empty");
-                return result;
-            case IS_NOT_EMPTY:
-                result = !ruleValue.isEmpty();
-                if (!result) errors.add(field + " is empty");
-                return result;
-            case IS_NULL:
-                result = Objects.isNull(fieldValue);
-                if (!result) errors.add(field + " is not null");
-                return result;
-            case IS_NOT_NULL:
-                result = Objects.nonNull(fieldValue);
-                if (!result) errors.add(field + " is null");
-                return result;
-            default:
-                errors.add("Unknown operator: " + operator + " for field: " + field);
-                return false;
-        }
-    }
-
-    private boolean evaluateCondition(double fieldValue, List<Double> ruleValue, String operator, List<String> errors, String field) {
-        boolean result;
-        switch (operator) {
-            case BETWEEN:
-                result = fieldValue >= ruleValue.get(0) && fieldValue <= ruleValue.get(1);
-                if (!result) errors.add(field + " is not between " + ruleValue.get(0) + " and " + ruleValue.get(1));
-                return result;
-            case IN:
-                result = ruleValue.stream().anyMatch(value -> value.equals(fieldValue));
-                if (!result) errors.add(field + " is not in the list of values");
-                return result;
-            case NOT_IN:
-                result = ruleValue.stream().noneMatch(value -> value.equals(fieldValue));
-                if (!result) errors.add(field + " is in the list of values");
-                return result;
-            default:
-                errors.add("Unknown operator: " + operator + " for field: " + field);
-                return false;
-        }
-    }
-
-    private boolean evaluateCondition(int fieldValue, List<Integer> ruleValue, String operator, List<String> errors, String field) {
-        boolean result;
-        switch (operator) {
-            case BETWEEN:
-                result = fieldValue >= ruleValue.get(0) && fieldValue <= ruleValue.get(1);
-                if (!result) errors.add(field + " is not between " + ruleValue.get(0) + " and " + ruleValue.get(1));
-                return result;
-            case IN:
-                result = ruleValue.stream().anyMatch(value -> value.equals(fieldValue));
-                if (!result) errors.add(field + " is not in the list of values");
-                return result;
-            case NOT_IN:
-                result = ruleValue.stream().noneMatch(value -> value.equals(fieldValue));
-                if (!result) errors.add(field + " is in the list of values");
-                return result;
-            default:
-                errors.add("Unknown operator: " + operator + " for field: " + field);
-                return false;
-        }
-    }
-
-    private boolean evaluateCondition(String fieldValue, List<String> ruleValue, String operator, List<String> errors, String field) {
-        boolean result;
-        switch (operator) {
-            case IN:
-                result = ruleValue.stream().anyMatch(value -> value.equals(fieldValue));
-                if (!result) errors.add(field + " is not in the list of values");
-                return result;
-            case NOT_IN:
-                result = ruleValue.stream().noneMatch(value -> value.equals(fieldValue));
-                if (!result) errors.add(field + " is in the list of values");
-                return result;
-            default:
-                errors.add("Unknown operator: " + operator + " for field: " + field);
-                return false;
-        }
-    }
-
-    private boolean evaluateCondition(String fieldValue, UserFieldType type, List<String> ruleValue, String operator, List<String> errors, String field) {
-        boolean result;
-        switch (operator) {
-            case IN:
-                result = ruleValue.stream().anyMatch(value -> value.equals(fieldValue));
-                if (!result) errors.add(field + " is not in the list of values");
-                return result;
-            case NOT_IN:
-                result = ruleValue.stream().noneMatch(value -> value.equals(fieldValue));
-                if (!result) errors.add(field + " is in the list of values");
-                return result;
-            default:
-                errors.add("Unknown operator: " + operator + " for field: " + field);
-                return false;
-        }
-    }
-
-    private boolean evaluateCondition(boolean fieldValue, boolean ruleValue, String operator, List<String> errors, String field) {
-        boolean result;
-        switch (operator) {
-            case EQUAL:
-                result = Objects.equals(fieldValue, ruleValue);
-                if (!result) errors.add(field + " does not equal " + ruleValue);
-                return result;
-            case NOT_EQUAL:
-                result = !Objects.equals(fieldValue, ruleValue);
-                if (!result) errors.add(field + " equals " + ruleValue);
-                return result;
-            default:
-                errors.add("Unknown operator: " + operator + " for field: " + field);
-                return false;
-        }
+        errors.add("Invalid boolean value for field: " + field);
+        return false;
     }
 }
